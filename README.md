@@ -1,9 +1,9 @@
-# Famly technical challenge: Fullstack Engineer in Growth
+# Famly technical challenge: Fullstack Engineer
 
 Hi :wave:
 
-This repository contains a technical challenge for engineering
-roles in the Growth department at Famly.
+This repository contains a technical challenge for a full-stack engineering
+role at Famly.
 
 ## Expectations
 
@@ -36,7 +36,7 @@ if you'd have more time.
    to the main branch. **Remember to include a helpful commit message**.
 5. When you're done, send us an email with the link to the forked repository. If you prefer not to fork it, you can also zip your solution and send it via email. 
 
-Feel free to reach out with any questions before starting the challenge via email: <bis@famly.co>
+Feel free to reach out with any questions before starting the challenge via email. 
 
 ## About this project
 
