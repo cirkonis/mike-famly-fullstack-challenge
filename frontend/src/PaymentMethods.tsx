@@ -116,9 +116,13 @@ const PaymentMethods = ({ parentId }: { parentId: number }) => {
   const { loading, data } = useQuery(GET_PAYMENT_METHODS, {
     variables: { parentId },
   });
-  const [setActivePaymentMethod] = useMutation(SET_ACTIVE_PAYMENT_METHOD);
-  const [addPaymentMethod] = useMutation(ADD_PAYMENT_METHOD);
-  const [deletePaymentMethod] = useMutation(DELETE_PAYMENT_METHOD);
+  const refetchPaymentMethods = {
+    refetchQueries: [{ query: GET_PAYMENT_METHODS, variables: { parentId } }],
+    awaitRefetchQueries: true,
+  };
+  const [setActivePaymentMethod] = useMutation(SET_ACTIVE_PAYMENT_METHOD, refetchPaymentMethods);
+  const [addPaymentMethod] = useMutation(ADD_PAYMENT_METHOD, refetchPaymentMethods);
+  const [deletePaymentMethod] = useMutation(DELETE_PAYMENT_METHOD, refetchPaymentMethods);
 
   if (loading) return <p>Loading...</p>;
 
