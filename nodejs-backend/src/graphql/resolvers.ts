@@ -39,7 +39,17 @@ export const resolvers = {
       _: any,
       { parentId, methodId }: { parentId: number; methodId: number },
     ) => {
+      const currentMethods = await profileRepository.retrievePaymentMethods(parentId);
+      const before = new ParentProfileBackend([], [], currentMethods);
+      const after = before.deletePaymentMethod(parentId, methodId);
+
+      if (before.paymentMethods(parentId).length === after.paymentMethods(parentId).length) {
+        return false;
+      }
+
       await profileRepository.deletePaymentMethod(methodId);
+      await profileRepository.updatePaymentMethods(after.paymentMethods(parentId));
+
       return true;
     },
   },

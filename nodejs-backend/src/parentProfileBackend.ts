@@ -58,7 +58,18 @@ export class ParentProfileBackend {
     }
 
     deletePaymentMethod(parentId: number, paymentMethodId: number) {
-        return new ParentProfileBackend(this.allParentProfiles, this.allInvoices, this.allPaymentMethods.filter(paymentMethod => !(paymentMethod.parentId === parentId && paymentMethod.id === paymentMethodId)));
+        const parentMethods = this.allPaymentMethods.filter(pm => pm.parentId === parentId);
+        if (parentMethods.length <= 1) return this;
+
+        const deletedMethod = parentMethods.find(pm => pm.id === paymentMethodId);
+        const remaining = this.allPaymentMethods.filter(pm => !(pm.parentId === parentId && pm.id === paymentMethodId));
+
+        if (deletedMethod?.isActive) {
+            const firstRemaining = remaining.find(pm => pm.parentId === parentId);
+            if (firstRemaining) firstRemaining.isActive = true;
+        }
+
+        return new ParentProfileBackend(this.allParentProfiles, this.allInvoices, remaining);
     }
 
     setActivePaymentMethod(parentId: number, paymentMethodId: number) {
