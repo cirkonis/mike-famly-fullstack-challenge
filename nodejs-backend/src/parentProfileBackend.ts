@@ -9,6 +9,7 @@ export interface PaymentMethod {
     parentId: number;
     method: string;
     isActive: boolean;
+    createdAt: string;
 }
   
 export  interface Invoice {
@@ -53,8 +54,8 @@ export class ParentProfileBackend {
         return this.allPaymentMethods.find(paymentMethod => paymentMethod.id === paymentMethodId);
     }
 
-    createPaymentMethod(parentId: number, method: string, isActive: boolean) {
-        return new ParentProfileBackend(this.allParentProfiles, this.allInvoices, [...this.allPaymentMethods, { id: this.allPaymentMethods.length + 1, parentId, method, isActive }]);
+    createPaymentMethod(parentId: number, method: string, isActive: boolean, createdAt: string = new Date().toISOString()) {
+        return new ParentProfileBackend(this.allParentProfiles, this.allInvoices, [...this.allPaymentMethods, { id: this.allPaymentMethods.length + 1, parentId, method, isActive, createdAt }]);
     }
 
     deletePaymentMethod(parentId: number, paymentMethodId: number) {

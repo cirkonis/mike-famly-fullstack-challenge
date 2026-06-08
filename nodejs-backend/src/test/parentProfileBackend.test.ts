@@ -59,7 +59,7 @@ describe("Parent profile backend", () => {
         .createParentProfile("Alice", "Bob")
         .createPaymentMethod(1, "Credit Card", true)
         .paymentMethods(1))
-      .toContainEqual({ id: 1, parentId: 1, method: "Credit Card", isActive: true })
+      .toContainEqual(expect.objectContaining({ id: 1, parentId: 1, method: "Credit Card", isActive: true }))
     });
 
     it("When a payment method is created, and there is a payment method already, the new one should have an id of 2", () => {
@@ -68,7 +68,7 @@ describe("Parent profile backend", () => {
         .createPaymentMethod(1, "Credit Card", false)
         .createPaymentMethod(1, "Debit Card", true)
         .paymentMethods(1))
-      .toContainEqual({ id: 2, parentId: 1, method: "Debit Card", isActive: true })
+      .toContainEqual(expect.objectContaining({ id: 2, parentId: 1, method: "Debit Card", isActive: true }))
     });
 
     it("When a payment method is deleted it should go away, because we don't want to keep payment methods around due to privacy concerns", () => {
@@ -78,7 +78,7 @@ describe("Parent profile backend", () => {
         .createPaymentMethod(1, "Debit Card", true)
         .deletePaymentMethod(1, 1)
         .paymentMethods(1))
-      .not.toContainEqual({ id: 1, parentId: 1, method: "Credit Card", isActive: false })
+      .not.toContainEqual(expect.objectContaining({ id: 1, parentId: 1, method: "Credit Card", isActive: false }))
     });
 
     it("When two payment methods share the same name, deleting one by id should not delete the other", () => {
@@ -89,7 +89,7 @@ describe("Parent profile backend", () => {
         .deletePaymentMethod(1, 2)
         .paymentMethods(1);
       expect(result).toHaveLength(1);
-      expect(result).toContainEqual({ id: 1, parentId: 1, method: "Visa", isActive: true });
+      expect(result).toContainEqual(expect.objectContaining({ id: 1, parentId: 1, method: "Visa", isActive: true }));
     });
 
     it("When the active payment method is deleted and others remain, one of the remaining should become active", () => {
@@ -119,7 +119,7 @@ describe("Parent profile backend", () => {
         .createPaymentMethod(1, "Debit Card", true)
         .setActivePaymentMethod(1, 1)
         .paymentMethods(1))
-      .toContainEqual({ id: 1, parentId: 1, method: "Credit Card", isActive: true })
+      .toContainEqual(expect.objectContaining({ id: 1, parentId: 1, method: "Credit Card", isActive: true }))
     });
 
     it("When a payment method is added, we should be able to get it by id, so what we can show the newly added payment method", () => {
@@ -128,7 +128,7 @@ describe("Parent profile backend", () => {
         .createParentProfile("Charlie", "David")
         .createPaymentMethod(2, "Credit Card", true)
         .paymentMethod(1))
-      .toEqual({ id: 1, parentId: 2, method: "Credit Card", isActive: true })
+      .toEqual(expect.objectContaining({ id: 1, parentId: 2, method: "Credit Card", isActive: true }))
     });
   });
 });

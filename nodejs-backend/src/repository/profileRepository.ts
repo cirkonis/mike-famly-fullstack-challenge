@@ -3,15 +3,17 @@ import mysql from "mysql2/promise";
 import { Invoice, ParentProfile, PaymentMethod } from "../parentProfileBackend";
 
 export class ProfileRepository {
-  async createPaymentMethod(paymentMethod: PaymentMethod): Promise<PaymentMethod> {
+  async createPaymentMethod(parentId: number, method: string, isActive: boolean): Promise<PaymentMethod> {
     const sql = "INSERT INTO payment_methods (parent_id, method, is_active) VALUES (?, ?, ?)";
-    const [result] = await db.execute<mysql.ResultSetHeader>(sql, [
-      paymentMethod.parentId,
-      paymentMethod.method,
-      paymentMethod.isActive,
-    ]);
-    const insertId = result.insertId;
-    return { ...paymentMethod, id: insertId };
+    const [result] = await db.execute<mysql.ResultSetHeader>(sql, [parentId, method, isActive]);
+    const rows = await query("SELECT * FROM payment_methods WHERE id = ?", [result.insertId]);
+    return {
+      id: rows[0].id,
+      parentId: rows[0].parent_id,
+      method: rows[0].method,
+      isActive: rows[0].is_active,
+      createdAt: rows[0].created_at.toISOString(),
+    };
   }
 
   async retrievePaymentMethods(parentId: number): Promise<PaymentMethod[]> {
@@ -22,6 +24,7 @@ export class ProfileRepository {
       parentId: r.parent_id,
       method: r.method,
       isActive: r.is_active,
+      createdAt: r.created_at.toISOString(),
     }));
   }
 

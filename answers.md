@@ -21,4 +21,12 @@ I tried to split this problem in two because I couldn't let go of the fact that 
 1. If it's the last remaining payment method, the deletion is blocked entirely (the parent needs to add a new one first before they can remove it).
 2. If the deleted method was the active one and others remain, the first remaining method is automatically activated.
 
-My initial though was alot of this could be "guarded" by UI code changes in the front end, disabling delete buttons and adding dialouges, but if these delete payment method calls get hit from other clients or directly it would still be possible to remove the only active payment still. Just noting here that I think some UI/UX should still be added but I wouldn't muddy this commit or branch in a real scenario, so I won't here either and just push the backend changes as a solution.     
+My initial though was alot of this could be "guarded" by UI code changes in the front end, disabling delete buttons and adding dialouges, but if these delete payment method calls get hit from other clients or directly it would still be possible to remove the only active payment still. Just noting here that I think some UI/UX should still be added but I wouldn't muddy this commit or branch in a real scenario, so I won't here either and just push the backend changes as a solution.
+
+## Exercise 4
+
+Added a `created_at` timestamp column to the `payment_methods` table via migration. Used `DEFAULT CURRENT_TIMESTAMP` so the database is the source of truth for when a payment method was created. Existing rows get the current time as their value.
+
+Plumbed it through the full stack: the repository reads it back and formats it as an ISO string, the GraphQL schema exposes it as `createdAt`, and the frontend displays it alongside the active/inactive status as a formatted date.
+
+One thing I noticed along the way: `parentProfileBackend.ts` has methods like `createPaymentMethod` that are only used by the test suite as data builders, and some methods that are used in resolvers as part of the apps flow. I had to update `createPaymentMethod` to include `createdAt` with a default value to keep the tests compiling, which felt like updating production code for test-only reasons. Coudl be moving these data builder functions is warranted or at least some indication in the file itself could be added so one knows when they are making changes on actual business logic.
