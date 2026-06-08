@@ -75,9 +75,20 @@ describe("Parent profile backend", () => {
       expect(parentProfileBackend
         .createParentProfile("Alice", "Bob")
         .createPaymentMethod(1, "Credit Card", true)
-        .deletePaymentMethod(1, "Credit Card")
+        .deletePaymentMethod(1, 1)
         .paymentMethods(1))
       .not.toContainEqual({ id: 1, parentId: 1, method: "Credit Card", isActive: true })
+    });
+
+    it("When two payment methods share the same name, deleting one by id should not delete the other", () => {
+      const result = parentProfileBackend
+        .createParentProfile("Alice", "Bob")
+        .createPaymentMethod(1, "Visa", true)
+        .createPaymentMethod(1, "Visa", false)
+        .deletePaymentMethod(1, 2)
+        .paymentMethods(1);
+      expect(result).toHaveLength(1);
+      expect(result).toContainEqual({ id: 1, parentId: 1, method: "Visa", isActive: true });
     });
 
     it("When setting a payment method active, it should deactivate the current active one and activate the new one, so that we don't have multiple active payment methods", () => {
