@@ -13,3 +13,12 @@ Fixed by adding `refetchQueries` to all three `useMutation` hooks in `PaymentMet
 The delete operation was using the payment method's name (`method`) to identify which one to remove — all the way through the frontend, GraphQL schema, and backend. Since names aren't unique, deleting a "Visa" would delete every payment method called "Visa".
 
 Added a failing test first to confirm the bug: create two payment methods with the same name, delete one by ID, and check the other survives. Then fixed the full stack to delete by `id` instead of `method` name — updated the domain logic, changed the GraphQL mutation argument from `method: String!` to `methodId: Long!`, simplified the resolver, and updated the frontend to pass the ID.
+
+## Exercise 3
+
+I tried to split this problem in two because I couldn't let go of the fact that there is nothing stopping a parent from deleting their only payment method so I added test and code changes for the following behaviour:
+
+1. If it's the last remaining payment method, the deletion is blocked entirely (the parent needs to add a new one first before they can remove it).
+2. If the deleted method was the active one and others remain, the first remaining method is automatically activated.
+
+My initial though was alot of this could be "guarded" by UI code changes in the front end, disabling delete buttons and adding dialouges, but if these delete payment method calls get hit from other clients or directly it would still be possible to remove the only active payment still. Just noting here that I think some UI/UX should still be added but I wouldn't muddy this commit or branch in a real scenario, so I won't here either and just push the backend changes as a solution.     

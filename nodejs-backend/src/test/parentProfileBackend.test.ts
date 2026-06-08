@@ -74,10 +74,11 @@ describe("Parent profile backend", () => {
     it("When a payment method is deleted it should go away, because we don't want to keep payment methods around due to privacy concerns", () => {
       expect(parentProfileBackend
         .createParentProfile("Alice", "Bob")
-        .createPaymentMethod(1, "Credit Card", true)
+        .createPaymentMethod(1, "Credit Card", false)
+        .createPaymentMethod(1, "Debit Card", true)
         .deletePaymentMethod(1, 1)
         .paymentMethods(1))
-      .not.toContainEqual({ id: 1, parentId: 1, method: "Credit Card", isActive: true })
+      .not.toContainEqual({ id: 1, parentId: 1, method: "Credit Card", isActive: false })
     });
 
     it("When two payment methods share the same name, deleting one by id should not delete the other", () => {
@@ -89,6 +90,26 @@ describe("Parent profile backend", () => {
         .paymentMethods(1);
       expect(result).toHaveLength(1);
       expect(result).toContainEqual({ id: 1, parentId: 1, method: "Visa", isActive: true });
+    });
+
+    it("When the active payment method is deleted and others remain, one of the remaining should become active", () => {
+      const result = parentProfileBackend
+        .createParentProfile("Alice", "Bob")
+        .createPaymentMethod(1, "Credit Card", true)
+        .createPaymentMethod(1, "Debit Card", false)
+        .deletePaymentMethod(1, 1)
+        .paymentMethods(1);
+      expect(result).toHaveLength(1);
+      expect(result[0].isActive).toBe(true);
+    });
+
+    it("When the last remaining payment method is deleted, the deletion should be prevented", () => {
+      const result = parentProfileBackend
+        .createParentProfile("Alice", "Bob")
+        .createPaymentMethod(1, "Credit Card", true)
+        .deletePaymentMethod(1, 1)
+        .paymentMethods(1);
+      expect(result).toHaveLength(1);
     });
 
     it("When setting a payment method active, it should deactivate the current active one and activate the new one, so that we don't have multiple active payment methods", () => {
