@@ -30,3 +30,19 @@ Added a `created_at` timestamp column to the `payment_methods` table via migrati
 Plumbed it through the full stack: the repository reads it back and formats it as an ISO string, the GraphQL schema exposes it as `createdAt`, and the frontend displays it alongside the active/inactive status as a formatted date.
 
 One thing I noticed along the way: `parentProfileBackend.ts` has methods like `createPaymentMethod` that are only used by the test suite as data builders, and some methods that are used in resolvers as part of the apps flow. I had to update `createPaymentMethod` to include `createdAt` with a default value to keep the tests compiling, which felt like updating production code for test-only reasons. Coudl be moving these data builder functions is warranted or at least some indication in the file itself could be added so one knows when they are making changes on actual business logic.
+
+## Exercise 5
+
+Created a `payment_method_audit_log` table via migration to capture every change made to payment methods. Each entry records the parent, the payment method, what action was taken (CREATED, ACTIVATED, DELETED), a human-readable description of the change, who did it, and when.
+
+The audit log writes are triggered in the resolvers — after each mutation (add, activate, delete) succeeds, it writes an entry to the audit table via the repository. The log is append-only by design, no update or delete operations are exposed.
+
+I also exposed the audit log through GraphQL as a query so it's accessible through the same interface as everything else, rather than needing direct database access to review it.
+
+A few thoughts on decisions I made and things I'd do differently with more time:
+
+- **The "who" problem:** Right now there's no authentication in the app, so `performed_by` just stores the `parentId`. In a real app this would come from the authenticated session/token. I'd also denormalize and store a snapshot of the user's name alongside the ID — that way the audit log stays accurate even if the user changes their name or gets deleted (GDPR). The ID keeps traceability, the name snapshot keeps the log self-contained for compliance.
+
+- **Storage:** I kept the audit log in the same MySQL database for simplicity, but in production I'd consider moving it to a separate store (something like Elasticsearch or BigQuery). Audit logs are append-only and high volume — they have different access patterns than operational data. The change would be straightforward since the repository pattern already separates data access from the resolvers, so you'd just swap in a different repository implementation without touching the resolver code.
+
+- **No foreign key on `payment_method_id`:** This is intentional — we need to log deletions, and the payment method won't exist in the table anymore after a delete. A foreign key would either block the delete or cascade-remove the audit entry, both of which defeat the purpose.

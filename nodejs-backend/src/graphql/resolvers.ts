@@ -16,13 +16,18 @@ export const resolvers = {
     invoices: async (_: any, { parentId }: { parentId: number }) => {
       return new ParentProfileBackend([], await profileRepository.retrieveInvoices(parentId), []).invoices(parentId);
     },
+    paymentMethodAuditLog: async (_: any, { parentId }: { parentId: number }) => {
+      return profileRepository.retrieveAuditLog(parentId);
+    },
   },
   Mutation: {
     addPaymentMethod: async (
       _: any,
       { parentId, method }: { parentId: number; method: string },
     ) => {
-      return await profileRepository.createPaymentMethod(parentId, method, false);
+      const paymentMethod = await profileRepository.createPaymentMethod(parentId, method, false);
+      await profileRepository.createAuditLogEntry(parentId, paymentMethod.id, "CREATED", `Added payment method "${method}"`, parentId);
+      return paymentMethod;
     },
     setActivePaymentMethod: async (
       _: any,
@@ -30,9 +35,12 @@ export const resolvers = {
     ) => {
       const parentProfileBackend = new ParentProfileBackend([], [], await profileRepository.retrievePaymentMethods(parentId)).setActivePaymentMethod(parentId, methodId);
 
-      await profileRepository.updatePaymentMethods(parentProfileBackend.paymentMethods(parentId))
+      await profileRepository.updatePaymentMethods(parentProfileBackend.paymentMethods(parentId));
 
-      return parentProfileBackend.paymentMethod(methodId);
+      const activated = parentProfileBackend.paymentMethod(methodId);
+      await profileRepository.createAuditLogEntry(parentId, methodId, "ACTIVATED", `Activated payment method "${activated?.method}"`, parentId);
+
+      return activated;
     },
     deletePaymentMethod: async (
       _: any,
@@ -40,6 +48,7 @@ export const resolvers = {
     ) => {
       const currentMethods = await profileRepository.retrievePaymentMethods(parentId);
       const before = new ParentProfileBackend([], [], currentMethods);
+      const deletedMethod = before.paymentMethod(methodId);
       const after = before.deletePaymentMethod(parentId, methodId);
 
       if (before.paymentMethods(parentId).length === after.paymentMethods(parentId).length) {
@@ -48,6 +57,7 @@ export const resolvers = {
 
       await profileRepository.deletePaymentMethod(methodId);
       await profileRepository.updatePaymentMethods(after.paymentMethods(parentId));
+      await profileRepository.createAuditLogEntry(parentId, methodId, "DELETED", `Deleted payment method "${deletedMethod?.method}"`, parentId);
 
       return true;
     },

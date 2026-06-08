@@ -24,10 +24,21 @@ export const typeDefs = gql`
     date: String!
   }
 
+  type AuditLogEntry {
+    id: Long!
+    parentId: Long!
+    paymentMethodId: Long!
+    action: String!
+    details: String!
+    performedBy: Long!
+    createdAt: String!
+  }
+
   type Query {
     parentProfile(parentId: Long!): ParentProfile
     paymentMethods(parentId: Long!): [PaymentMethod]
     invoices(parentId: Long!): [Invoice]
+    paymentMethodAuditLog(parentId: Long!): [AuditLogEntry]
   }
 
   type Mutation {
