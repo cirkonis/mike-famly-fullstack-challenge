@@ -68,4 +68,29 @@ export class ProfileRepository {
     const [result] = await db.execute<mysql.ResultSetHeader>(sql, [methodId]);
     return result.affectedRows > 0;
   }
+
+  async retrieveAuditLog(parentId: number): Promise<any[]> {
+    const sql = "SELECT * FROM payment_method_audit_log WHERE parent_id = ? ORDER BY created_at DESC";
+    const results = await query(sql, [parentId]);
+    return results.map((r) => ({
+      id: r.id,
+      parentId: r.parent_id,
+      paymentMethodId: r.payment_method_id,
+      action: r.action,
+      details: r.details,
+      performedBy: r.performed_by,
+      createdAt: r.created_at.toISOString(),
+    }));
+  }
+
+  async createAuditLogEntry(
+    parentId: number,
+    paymentMethodId: number,
+    action: string,
+    details: string,
+    performedBy: number,
+  ): Promise<void> {
+    const sql = "INSERT INTO payment_method_audit_log (parent_id, payment_method_id, action, details, performed_by) VALUES (?, ?, ?, ?, ?)";
+    await db.execute(sql, [parentId, paymentMethodId, action, details, performedBy]);
+  }
 }
